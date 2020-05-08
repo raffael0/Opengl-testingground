@@ -113,7 +113,6 @@ int main() {
 
 
         ourShader.use();
-
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -130,18 +129,20 @@ int main() {
         //lightingShader.setMat4("model", model);
         */
         // render the loaded model
+
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
         //model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         //ourModel.Draw(ourShader);
+
         terrain->Draw(camera.Position, ourShader);
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-        std::cout << "fps:" << 1/deltaTime << std::endl;
+        //std::cout << "fps:" << 1/deltaTime << std::endl;
     }
     delete(terrain);
     // optional: de-allocate all resources once they've outlived their purpose:
