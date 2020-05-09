@@ -113,7 +113,6 @@ int main() {
 
         // be sure to activate shader when setting uniforms/drawing objects
 
-        std::cout << "X: "<<camera.Front.x << " Y: " << camera.Front.y << " Z:" << camera.Front.z << std::endl;
         ourShader.use();
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
@@ -144,7 +143,7 @@ int main() {
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-        //std::cout << "fps:" << 1/deltaTime << std::endl;
+        std::cout << "fps:" << 1/deltaTime << std::endl;
     }
     delete(terrain);
     // optional: de-allocate all resources once they've outlived their purpose:

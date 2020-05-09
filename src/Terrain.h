@@ -12,11 +12,11 @@
 #include <glad/glad.h>
 
 #define SIZE 41000
-#define RESOLUTION  2
-#define RENDERDISTANCE 4
-#define FRACTALDEPTH 3
+#define RESOLUTION  10
+#define RENDERDISTANCE 30
+#define FRACTALDEPTH 4
 #define FREQUENCY .2f
-#define POWER 10.0f
+#define POWER 3.0f
 #define SCALE 1.0f
 class Terrain{
 
@@ -45,55 +45,25 @@ Terrain::Terrain() {
     glGenBuffers(1,&VBO);
     glGenBuffers(1,&EBO);
 
-
-
-    points.resize(SIZE,std::vector<float>(SIZE,FLT_MIN));
-    std::cout <<"test" << std::endl;
-
-    glGenVertexArrays(1,&VAO);
-    glGenBuffers(1,&VBO);
-    glGenBuffers(1,&EBO);
     glm::vec3 position = glm::vec3(0.0f,0.0f,0.0f);
-    //points.resize(SIZE,std::vector<float>(SIZE,FLT_MIN));
     glm::vec3 playerPosition = position;
-    playerPosition.x += SIZE/4;
-    playerPosition.y += SIZE/4;
-    playerPosition.z += SIZE/4;
 
     std::vector<Vertex> vertices;
     int i = 0;
     Vertex vertex;
     vertex.Normal = glm::vec3(0,0,0);
     vertex.TexCoords = glm::vec2(0,0);
-    //td::cout << playerPosition.x -250 << "    " << playerPosition.x +250 << std::endl;
-    std::cout<<"size: " <<((int)round(playerPosition.x) -RENDERDISTANCE)*RESOLUTION <<std::endl;
-    float currentFrame = glfwGetTime();
-    for (int x = ((int)round(playerPosition.x) -RENDERDISTANCE)*RESOLUTION; x < (playerPosition.x +RENDERDISTANCE)*RESOLUTION; x++ ) {
-        for (int z =  ((int)round(playerPosition.z) -RENDERDISTANCE)*RESOLUTION; z < (playerPosition.z +RENDERDISTANCE)*RESOLUTION; z++ ) {
-            if(points.at(x).at(z) == FLT_MIN) {
-                points.at(x).at(z) = getHeight(x/RESOLUTION,z/RESOLUTION);
-            }
 
-            vertex.Position = glm::vec3(x,points.at(x).at(z),z);
+    for (float x = (round(playerPosition.x) -RENDERDISTANCE); x < (playerPosition.x +RENDERDISTANCE); x=x+(1.0f/RESOLUTION) ) {
+        for (float z =  (round(playerPosition.z) -RENDERDISTANCE); z < (playerPosition.z +RENDERDISTANCE); z=z+(1.0f/RESOLUTION) ) {
+
+            vertex.Position = glm::vec3(x,getHeight(x,z),z);
             vertices.push_back(vertex);
-            if(points.at(x+1 ).at(z) == FLT_MIN) {
-                points.at(x+1 ).at(z) = getHeight((float)x+1 ,z);
-            }
-
-            vertex.Position = glm::vec3(x/RESOLUTION+1 ,points.at(x+1 ).at(z),z/RESOLUTION);
+            vertex.Position = glm::vec3(x+(1.0f/RESOLUTION) ,getHeight(x+(1.0f/RESOLUTION),z),z);
             vertices.push_back(vertex);
-
-            if( points.at(x).at(z+1 ) == FLT_MIN) {
-                points.at(x).at(z+1 ) = getHeight((float)x,(float)z+1);
-            }
-
-            vertex.Position = glm::vec3(x/RESOLUTION,points.at(x).at(z+1 ),(z/RESOLUTION)+1 );
+            vertex.Position = glm::vec3(x,getHeight(x,z+(1.0f/RESOLUTION)),(z)+(1.0f/RESOLUTION) );
             vertices.push_back(vertex);
-            if(points.at(x+1 ).at(z+1 ) == FLT_MIN) {
-                points.at(x+1 ).at(z+1 ) = getHeight((float)x+1 ,(float)z+1 );
-            }
-
-            vertex.Position = glm::vec3((x/RESOLUTION)+1 ,points.at(x+1 ).at(z+1 ),(z/RESOLUTION)+1);
+            vertex.Position = glm::vec3(x+(1.0f/RESOLUTION) ,getHeight(x+(1.0f/RESOLUTION),z+(1.0f/RESOLUTION)),z+(1.0f/RESOLUTION));
             vertices.push_back(vertex);
             indices.push_back(i);
             indices.push_back(i+3);
@@ -103,18 +73,7 @@ Terrain::Terrain() {
             indices.push_back(i+2);
             i = i+4;
         }
-
-
     }
-    float deltaTime =  glfwGetTime()- currentFrame ;
-    std::cout<<1/deltaTime<< std::endl;
-
-    for (auto & vertice : vertices) {
-        vertice.Position.x -= SIZE/4;
-        //vertices[j].Position.y -= SIZE/2;
-        vertice.Position.z -= SIZE/4;
-    }
-    std::cout << vertices.size()<<std::endl;
 
 
 
@@ -140,12 +99,14 @@ Terrain::Terrain() {
 
 
     //glBindVertexArray(0);
-    
+
 }
 
 void Terrain::Draw(glm::vec3 position, Shader ourShader) {
 
 
+
+   
     glBindVertexArray(0);
     ourShader.use();
     // world transformation
@@ -155,6 +116,9 @@ void Terrain::Draw(glm::vec3 position, Shader ourShader) {
     ourShader.setMat4("model", model);
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,0);
+
+
+
     //for(auto & a : points){
     //    a.clear();
     //}
