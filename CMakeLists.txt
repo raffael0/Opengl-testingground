@@ -20,4 +20,3 @@ include_directories( ${OPENGL_INCLUDE_DIRS} "/home/raffael/Documents/Schule/19-2
 link_directories("/home/raffael/Documents/Schule/19-20/ANDERE PROJEKTE/Opengl/UNO5_Linux/dependencies/libary")
 
 target_link_libraries(UNO5_Linux ${OPENGL_LIBRARIES} )
-

@@ -88,6 +88,8 @@ int main() {
     // -----------
     Shader ourShader("/home/raffael/Documents/Schule/19-20/ANDERE PROJEKTE/Opengl/UNO5_Linux/src/shader/model.vs", "/home/raffael/Documents/Schule/19-20/ANDERE PROJEKTE/Opengl/UNO5_Linux/src/shader/model.fs");
 
+    //std::cout<< (1.0f/3.0f) <<std::endl;
+    //std::cout <<terrain->getHeight(2,3)<< std::endl;
     while (!glfwWindowShouldClose(window))
     {
 
@@ -111,7 +113,7 @@ int main() {
 
         // be sure to activate shader when setting uniforms/drawing objects
 
-
+        std::cout << "X: "<<camera.Front.x << " Y: " << camera.Front.y << " Z:" << camera.Front.z << std::endl;
         ourShader.use();
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
@@ -134,7 +136,7 @@ int main() {
         model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
         //model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
-        //ourModel.Draw(ourShader);
+        ourModel.Draw(ourShader);
 
         terrain->Draw(camera.Position, ourShader);
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

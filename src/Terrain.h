@@ -11,16 +11,20 @@
 #include <glm/gtc/noise.hpp>
 #include <glad/glad.h>
 
-#define SIZE 10000
-#define RESOLUTION  0.3
-#define RENDERDISTANCE 50
+#define SIZE 41000
+#define RESOLUTION  2
+#define RENDERDISTANCE 4
 #define FRACTALDEPTH 3
 #define FREQUENCY .2f
 #define POWER 10.0f
-
+#define SCALE 1.0f
 class Terrain{
-public: Terrain();
+
+public:
+    Terrain();
     void Draw(glm::vec3 playerPosition,Shader shader);
+    float getHeight(float x,float z);
+
 private:
     std::vector<std::vector<float>> points;
     struct Vertex{
@@ -30,63 +34,66 @@ private:
     };
     unsigned int VAO,VBO,EBO;
     float lastFrame;
+    std::vector<unsigned int> indices;
 
 private:
-    float getHeight(float x,float z);
 
 };
 
 Terrain::Terrain() {
-    points.resize(SIZE,std::vector<float>(SIZE,FLT_MIN));
-
     glGenVertexArrays(1,&VAO);
     glGenBuffers(1,&VBO);
     glGenBuffers(1,&EBO);
 
-    //glBindVertexArray(0);
-}
 
-void Terrain::Draw(glm::vec3 position, Shader ourShader) {
+
+    points.resize(SIZE,std::vector<float>(SIZE,FLT_MIN));
+    std::cout <<"test" << std::endl;
+
+    glGenVertexArrays(1,&VAO);
+    glGenBuffers(1,&VBO);
+    glGenBuffers(1,&EBO);
+    glm::vec3 position = glm::vec3(0.0f,0.0f,0.0f);
+    //points.resize(SIZE,std::vector<float>(SIZE,FLT_MIN));
     glm::vec3 playerPosition = position;
-    playerPosition.x += SIZE/2;
-    playerPosition.y += SIZE/2;
-    playerPosition.z += SIZE/2;
+    playerPosition.x += SIZE/4;
+    playerPosition.y += SIZE/4;
+    playerPosition.z += SIZE/4;
 
     std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
     int i = 0;
     Vertex vertex;
     vertex.Normal = glm::vec3(0,0,0);
     vertex.TexCoords = glm::vec2(0,0);
     //td::cout << playerPosition.x -250 << "    " << playerPosition.x +250 << std::endl;
-
+    std::cout<<"size: " <<((int)round(playerPosition.x) -RENDERDISTANCE)*RESOLUTION <<std::endl;
     float currentFrame = glfwGetTime();
-    for (float x = playerPosition.x -RENDERDISTANCE -.2f; x < (playerPosition.x +RENDERDISTANCE + .2f); x=x+RESOLUTION ) {
-        for (float z =  playerPosition.z -RENDERDISTANCE -.2f; z < (playerPosition.z +RENDERDISTANCE +.2f); z=z+RESOLUTION ) {
+    for (int x = ((int)round(playerPosition.x) -RENDERDISTANCE)*RESOLUTION; x < (playerPosition.x +RENDERDISTANCE)*RESOLUTION; x++ ) {
+        for (int z =  ((int)round(playerPosition.z) -RENDERDISTANCE)*RESOLUTION; z < (playerPosition.z +RENDERDISTANCE)*RESOLUTION; z++ ) {
             if(points.at(x).at(z) == FLT_MIN) {
-                points.at(x).at(z) = glm::perlin(glm::vec2(x,z))*3;
+                points.at(x).at(z) = getHeight(x/RESOLUTION,z/RESOLUTION);
             }
 
             vertex.Position = glm::vec3(x,points.at(x).at(z),z);
             vertices.push_back(vertex);
-            if(points.at(x+RESOLUTION ).at(z) == FLT_MIN) {
-                points.at(x+RESOLUTION ).at(z) = glm::perlin(glm::vec2(x+RESOLUTION ,z));
+            if(points.at(x+1 ).at(z) == FLT_MIN) {
+                points.at(x+1 ).at(z) = getHeight((float)x+1 ,z);
             }
 
-            vertex.Position = glm::vec3(x+RESOLUTION ,points.at(x+RESOLUTION ).at(z),z);
+            vertex.Position = glm::vec3(x/RESOLUTION+1 ,points.at(x+1 ).at(z),z/RESOLUTION);
             vertices.push_back(vertex);
 
-            if( points.at(x).at(z+RESOLUTION ) == FLT_MIN) {
-                points.at(x).at(z+RESOLUTION ) = glm::perlin(glm::vec2(x,z+RESOLUTION ));
+            if( points.at(x).at(z+1 ) == FLT_MIN) {
+                points.at(x).at(z+1 ) = getHeight((float)x,(float)z+1);
             }
 
-            vertex.Position = glm::vec3(x,points.at(x).at(z+RESOLUTION ),z+RESOLUTION );
+            vertex.Position = glm::vec3(x/RESOLUTION,points.at(x).at(z+1 ),(z/RESOLUTION)+1 );
             vertices.push_back(vertex);
-            if(points.at(x+RESOLUTION ).at(z+RESOLUTION ) == FLT_MIN) {
-                points.at(x+RESOLUTION ).at(z+RESOLUTION ) = glm::perlin(glm::vec2(x+RESOLUTION ,z+RESOLUTION ));
+            if(points.at(x+1 ).at(z+1 ) == FLT_MIN) {
+                points.at(x+1 ).at(z+1 ) = getHeight((float)x+1 ,(float)z+1 );
             }
 
-            vertex.Position = glm::vec3(x+RESOLUTION ,points.at(x+RESOLUTION ).at(z+RESOLUTION ),z+RESOLUTION);
+            vertex.Position = glm::vec3((x/RESOLUTION)+1 ,points.at(x+1 ).at(z+1 ),(z/RESOLUTION)+1);
             vertices.push_back(vertex);
             indices.push_back(i);
             indices.push_back(i+3);
@@ -103,11 +110,13 @@ void Terrain::Draw(glm::vec3 position, Shader ourShader) {
     std::cout<<1/deltaTime<< std::endl;
 
     for (auto & vertice : vertices) {
-        vertice.Position.x -= SIZE/2;
+        vertice.Position.x -= SIZE/4;
         //vertices[j].Position.y -= SIZE/2;
-        vertice.Position.z -= SIZE/2;
+        vertice.Position.z -= SIZE/4;
     }
     std::cout << vertices.size()<<std::endl;
+
+
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER,VBO);
@@ -128,25 +137,45 @@ void Terrain::Draw(glm::vec3 position, Shader ourShader) {
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
+
+
+    //glBindVertexArray(0);
+    
+}
+
+void Terrain::Draw(glm::vec3 position, Shader ourShader) {
+
+
     glBindVertexArray(0);
     ourShader.use();
     // world transformation
     glm::mat4 model = glm::mat4(1.0f);
     //model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-    model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));	// it's a bit too big for our scene, so scale it down
+    model = glm::scale(model, glm::vec3(SCALE, SCALE, SCALE));	// it's a bit too big for our scene, so scale it down
     ourShader.setMat4("model", model);
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,0);
-
+    //for(auto & a : points){
+    //    a.clear();
+    //}
+    //glDeleteBuffers(1,&EBO);
+    //glDeleteBuffers(1,&VBO);
+    //glDeleteVertexArrays(1,&VAO);
+    //points.clear();
 }
+
 //This function uses generates the Height for a given x and z value
 float Terrain::getHeight(float x,float z) {
+    //return glm::perlin(glm::vec2(x,z));
+    x+=0.2f;
+    z+=0.2f;
     float height= 0;
-    for (int i = 0; i < FRACTALDEPTH; ++i) {
-        height += (1.0f/i)*glm::perlin(glm::vec2(FREQUENCY*x*i, FREQUENCY * z*i));
+    for (float i = 1; i < FRACTALDEPTH+1; ++i) {
+        height += (1.0f/i)*abs(glm::perlin(glm::vec2(FREQUENCY*x*i, FREQUENCY * z*i)));
     }
     height = powf(height,POWER);
-    return 0;
+    return height;
+
 }
 
 #endif //UNO5_LINUX_TERRAIN_H
